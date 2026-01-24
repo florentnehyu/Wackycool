@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>APP SYSTEM</title>
+
+<style>
+body {
+    margin: 0;
+    background: black;
+    color: #00ff00;
+    font-family: "Courier New", monospace;
+    overflow: hidden;
+}
+
+/* Binary */
+#binary {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 90px;
+    padding: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+.red { color: red; }
+
+/* Speed button */
+#speedBtn {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    padding: 6px 12px;
+    background: black;
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    cursor: pointer;
+    z-index: 999;
+}
+#speedBtn.active {
+    background: #00ff00;
+    color: black;
+}
+
+/* Letter */
+#letter {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #f5f0e6;
+    color: black;
+    padding: 30px;
+    width: 600px;
+    font-family: "Comic Sans MS", cursive;
+    font-size: 20px;
+}
+
+/* Dialogue */
+#dialogue {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    border: 2px solid #00ff00;
+    padding: 12px;
+}
+
+/* Game */
+#game {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    width: 100%;
+    padding: 20px;
+}
+
+/* USB UI */
+#usbUI {
+    display: none;
+    position: fixed;
+    top: 140px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 520px;
+    background: #c0c0c0;
+    border: 2px solid black;
+    color: black;
+    font-family: Tahoma;
+}
+
+#usbHeader {
+    background: navy;
+    color: white;
+    padding: 5px;
+}
+
+.doc {
+    padding: 6px;
+    cursor: pointer;
+}
+.doc:hover {
+    background: #000080;
+    color: white;
+}
+
+/* File window */
+#fileWindow {
+    display: none;
+    position: fixed;
+    top: 180px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 480px;
+    background: white;
+    border: 2px solid black;
+    color: black;
+}
+
+#fileHeader {
+    background: gray;
+    padding: 4px;
+    font-weight: bold;
+}
+
+#fileContent {
+    padding: 10px;
+    height: 180px;
+    overflow-y: auto;
+}
+
+/* Rainbow */
+.rainbow {
+    font-weight: bold;
+    animation: rainbow 2s linear infinite;
+}
+@keyframes rainbow {
+    0% { color: red; }
+    16% { color: orange; }
+    33% { color: yellow; }
+    50% { color: lime; }
+    66% { color: cyan; }
+    83% { color: magenta; }
+    100% { color: red; }
+}
+</style>
+</head>
+<body>
+
+<div id="binary"></div>
+
+<button id="speedBtn" onclick="toggleSpeed()">⏩ SPEED</button>
+
+<div id="letter"></div>
+<div id="dialogue"></div>
+<div id="game"></div>
+
+<div id="usbUI">
+    <div id="usbHeader">USB_DRIVE (E:)</div>
+    <div id="usbContent"></div>
+</div>
+
+<div id="fileWindow">
+    <div id="fileHeader">document.txt</div>
+    <div id="fileContent"></div>
+</div>
+
+<script>
+/* ------------------ GLOBAL SPEED ------------------ */
+let skipTyping = false;
+let typingInterval = null;
+
+function toggleSpeed() {
+    skipTyping = !skipTyping;
+    document.getElementById("speedBtn").classList.toggle("active", skipTyping);
+}
+
+/* ------------------ BINARY ------------------ */
+const words=["SPREAD","ELISA","VHS","NOSOI","C00L"];
+setInterval(()=>{
+    let line="",pos=Math.floor(Math.random()*120);
+    for(let i=0;i<160;i++){
+        if(i===pos) line+=`<span class="red">${words[Math.floor(Math.random()*5)]}</span>`;
+        line+=Math.random()>0.5?"1":"0";
+    }
+    binary.innerHTML=line;
+},120);
+
+/* ------------------ TYPEWRITER ------------------ */
+function typeText(el,text,cb){
+    if(typingInterval) clearInterval(typingInterval);
+    el.innerHTML="";
+
+    if(skipTyping){
+        el.innerHTML=text.replace(/\n/g,"<br>");
+        if(cb) cb();
+        return;
+    }
+
+    let i=0;
+    typingInterval=setInterval(()=>{
+        el.innerHTML+=text[i]==="\n"?"<br>":text[i];
+        i++;
+        if(i>=text.length){
+            clearInterval(typingInterval);
+            if(cb) cb();
+        }
+    },300);
+}
+
+/* ------------------ LETTER ------------------ */
+setTimeout(()=>{
+    letter.style.display="block";
+    typeText(letter,
+`23/09/2003
+
+APP production vous propose un jeu nouveau ;
+APP BATTLEGROUND VR 2003 EDITION!
+
+Plusieurs modèles joueurs sont actuellement en cours de préparation.
+
+Continuer.`,
+()=>{
+    letter.innerHTML+=`<br><br><button onclick="startDialogue()">Continuer</button>`;
+});
+},2000);
+
+/* ------------------ DIALOGUE ------------------ */
+function startDialogue(){
+    letter.style.display="none";
+    dialogue.style.display="block";
+    typeText(dialogue,"Elisa : Étrange.",()=>setTimeout(startGame,1200));
+}
+
+/* ------------------ TEXT GAME ------------------ */
+function startGame(){
+    dialogue.style.display="none";
+    game.style.display="block";
+    typeText(game,
+"Vous êtes dans une pièce.\nUn placard est ouvert.\n> prendre clé usb",
+()=>{});
+    game.onclick=openUSB;
+}
+
+/* ------------------ USB ------------------ */
+function openUSB(){
+    game.style.display="none";
+    usbUI.style.display="block";
+    usbContent.innerHTML="";
+
+    for(let i=1;i<=20;i++){
+        let d=document.createElement("div");
+        d.className="doc";
+        d.textContent=`document_${i}.txt`;
+        d.onclick=()=>openFile(i);
+        usbContent.appendChild(d);
+    }
+}
+
+/* ------------------ FILES ------------------ */
+function openFile(i){
+    fileWindow.style.display="block";
+    fileHeader.textContent=`document_${i}.txt`;
+
+    if(i===13){
+        typeText(fileContent,
+"MODEL IDENTIFIED\n\nELISA_PLAYERMODEL_UZUMAKI");
+    } else {
+        fileContent.innerHTML=
+        "<div class='rainbow'>Thanks from Florent (developer)</div><br><br>Fake logs detected.";
+    }
+}
+</script>
+
+</body>
+</html>
